@@ -1,0 +1,138 @@
+{
+  "name": "project-toolkit",
+  "displayName": "Project Toolkit",
+  "description": "A workspace toolkit for folder scaffolding, file templates, and focused project navigation.",
+  "version": "1.0.0",
+  "publisher": "adem74",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "scaffold",
+    "template",
+    "file template",
+    "folder template",
+    "project template",
+    "workspace",
+    "focus folder",
+    "module",
+    "modular",
+    ".NET",
+    "Flutter"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "icon": "assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adem74/vscode-project-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adem74/vscode-project-toolkit/issues"
+  },
+  "homepage": "https://github.com/adem74/vscode-project-toolkit",
+  "license": "MIT",
+  "contributes": {
+    "commands": [
+      {
+        "command": "projectToolkit.createFolders",
+        "title": "Create Module Folders",
+        "category": "Project Toolkit"
+      },
+      {
+        "command": "projectToolkit.createFileFromTemplate",
+        "title": "Create File From Template",
+        "category": "Project Toolkit"
+      },
+      {
+        "command": "projectToolkit.focusFolder",
+        "title": "Focus Folder",
+        "category": "Project Toolkit"
+      },
+      {
+        "command": "projectToolkit.exitFocusFolder",
+        "title": "Exit Focus Folder",
+        "category": "Project Toolkit",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "projectToolkit.resetFocusFolder",
+        "title": "Reset Focus Folder",
+        "category": "Project Toolkit",
+        "icon": "$(debug-restart)"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "projectToolkit.menu",
+        "label": "Project Toolkit"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "submenu": "projectToolkit.menu",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation"
+        }
+      ],
+      "projectToolkit.menu": [
+        {
+          "command": "projectToolkit.createFolders",
+          "when": "explorerResourceIsFolder",
+          "group": "1_scaffold"
+        },
+        {
+          "command": "projectToolkit.createFileFromTemplate",
+          "when": "explorerResourceIsFolder",
+          "group": "2_templates"
+        },
+        {
+          "command": "projectToolkit.focusFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "3_focus"
+        },
+        {
+          "command": "projectToolkit.exitFocusFolder",
+          "when": "projectToolkit.focusFolder.active",
+          "group": "4_focus"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "projectToolkit.exitFocusFolder",
+          "when": "view == 'workbench.explorer.fileView' && projectToolkit.focusFolder.active",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "projectToolkit.createFolders"
+        },
+        {
+          "command": "projectToolkit.createFileFromTemplate"
+        },
+        {
+          "command": "projectToolkit.focusFolder"
+        },
+        {
+          "command": "projectToolkit.exitFocusFolder",
+          "when": "projectToolkit.focusFolder.active"
+        },
+        {
+          "command": "projectToolkit.resetFocusFolder"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.0.0"
+  }
+}
