@@ -2,8 +2,8 @@
   "name": "project-toolkit",
   "displayName": "Project Toolkit",
   "description": "A workspace toolkit for folder scaffolding, file templates, and focused project navigation.",
-  "version": "1.0.0",
-  "publisher": "adem74",
+  "version": "1.0.1",
+  "publisher": "AdemUnal",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -23,7 +23,9 @@
     ".NET",
     "Flutter"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./extension.js",
   "icon": "assets/icon.png",
   "repository": {
@@ -37,6 +39,24 @@
   "license": "MIT",
   "contributes": {
     "commands": [
+      {
+        "command": "projectToolkit.setupExtension",
+        "title": "Setup Extension",
+        "category": "Project Toolkit",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "projectToolkit.openFolderTemplates",
+        "title": "Open Folder Templates",
+        "category": "Project Toolkit",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "projectToolkit.openFileTemplates",
+        "title": "Open File Templates",
+        "category": "Project Toolkit",
+        "icon": "$(files)"
+      },
       {
         "command": "projectToolkit.createFolders",
         "title": "Create Module Folders",
@@ -110,17 +130,10 @@
       ],
       "commandPalette": [
         {
-          "command": "projectToolkit.createFolders"
+          "command": "projectToolkit.openFolderTemplates"
         },
         {
-          "command": "projectToolkit.createFileFromTemplate"
-        },
-        {
-          "command": "projectToolkit.focusFolder"
-        },
-        {
-          "command": "projectToolkit.exitFocusFolder",
-          "when": "projectToolkit.focusFolder.active"
+          "command": "projectToolkit.openFileTemplates"
         },
         {
           "command": "projectToolkit.resetFocusFolder"

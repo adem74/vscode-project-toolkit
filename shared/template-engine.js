@@ -31,6 +31,7 @@ async function loadTemplates(workspaceFolder) {
     "Project Toolkit",
     "File Templates"
   );
+
   if (!(await isDirectory(templatesRoot))) {
     return [];
   }
@@ -288,22 +289,22 @@ function applyTransform(value, transformExpression) {
 }
 
 async function getProjectInfo(targetFolderUri, workspaceFolder) {
-  const projectRootUri = await findNearestProjectRoot(
+  const projectRoot = await findNearestProjectRoot(
     targetFolderUri,
     workspaceFolder.uri
   );
 
   let rootNamespace;
 
-  if (projectRootUri.csprojName) {
-    rootNamespace = sanitizeIdentifier(projectRootUri.csprojName);
+  if (projectRoot.csprojName) {
+    rootNamespace = sanitizeIdentifier(projectRoot.csprojName);
   } else {
     rootNamespace = sanitizeIdentifier(workspaceFolder.name);
   }
 
   return {
-    rootUri: projectRootUri.uri,
-    rootPath: projectRootUri.uri.fsPath,
+    rootUri: projectRoot.uri,
+    rootPath: projectRoot.uri.fsPath,
     rootNamespace
   };
 }
@@ -350,18 +351,21 @@ function buildTargetContext(targetFolderUri, projectInfo) {
     path.relative(projectInfo.rootPath, targetFolderUri.fsPath)
   );
 
-  const parts = relativeToProject
+  const parts = relativeToProject && relativeToProject !== "."
     ? relativeToProject.split("/").filter(Boolean)
     : [];
 
-  const namespaceParts = [projectInfo.rootNamespace, ...parts];
+  const targetNamespace = [projectInfo.rootNamespace, ...parts].join(".");
+  const moduleNamespace = removeLastNamespacePart(targetNamespace);
 
   return {
     path: targetFolderUri.fsPath,
-    relative: relativeToProject,
-    namespace: namespaceParts.join("."),
+    relative: relativeToProject === "." ? "" : relativeToProject,
+
+    namespace: targetNamespace,
+
     rootNamespace: projectInfo.rootNamespace,
-    moduleNamespace: buildModuleNamespace(projectInfo.rootNamespace, parts)
+    moduleNamespace
   };
 }
 
@@ -371,6 +375,7 @@ function buildFileContext(fileUri, projectInfo) {
   );
 
   const directoryRelative = normalizePath(path.dirname(relativeToProject));
+
   const directoryParts = directoryRelative && directoryRelative !== "."
     ? directoryRelative.split("/").filter(Boolean)
     : [];
@@ -381,6 +386,9 @@ function buildFileContext(fileUri, projectInfo) {
     ? fileName.slice(0, -extension.length)
     : fileName;
 
+  const fileNamespace = [projectInfo.rootNamespace, ...directoryParts].join(".");
+  const moduleNamespace = removeLastNamespacePart(fileNamespace);
+
   return {
     path: fileUri.fsPath,
     relative: relativeToProject,
@@ -388,18 +396,23 @@ function buildFileContext(fileUri, projectInfo) {
     name: fileName,
     nameNoExtension: fileNameWithoutExtension,
     extension,
-    namespace: [projectInfo.rootNamespace, ...directoryParts].join("."),
+    namespace: fileNamespace,
     rootNamespace: projectInfo.rootNamespace,
-    moduleNamespace: buildModuleNamespace(projectInfo.rootNamespace, directoryParts)
+    moduleNamespace
   };
 }
 
-function buildModuleNamespace(rootNamespace, parts) {
-  if (!parts || parts.length === 0) {
-    return rootNamespace;
+function removeLastNamespacePart(namespaceValue) {
+  const parts = String(namespaceValue)
+    .split(".")
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  if (parts.length <= 1) {
+    return String(namespaceValue);
   }
 
-  return [rootNamespace, parts[0]].join(".");
+  return parts.slice(0, -1).join(".");
 }
 
 module.exports = {
