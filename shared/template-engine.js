@@ -20,8 +20,7 @@ const {
   toSnakeCase,
   stripLastPascalWord,
   stripSuffix,
-  pluralizeSimple,
-  sanitizeIdentifier
+  pluralizeSimple
 } = require("./text-utils");
 
 async function loadTemplates(workspaceFolder) {
@@ -249,8 +248,12 @@ function getValue(context, pathExpression) {
 }
 
 function applyTransform(value, transformExpression) {
-  const [name, ...rest] = transformExpression.split(":");
-  const arg = rest.join(":");
+  const [nameRaw, ...rest] = transformExpression.split(":");
+  const name = String(nameRaw || "").trim();
+  const arg = rest.join(":").trim();
+  if (/^\d+$/.test(name)) {
+    return removeLastNamespaceParts(value, parseNamespaceUpCount(name));
+  }
 
   switch (name) {
     case "pascal":
@@ -283,6 +286,12 @@ function applyTransform(value, transformExpression) {
     case "stripSuffix":
       return stripSuffix(value, arg);
 
+    case "namespaceUp":
+      return removeLastNamespaceParts(value, parseNamespaceUpCount(arg));
+
+    case "up":
+      return removeLastNamespaceParts(value, parseNamespaceUpCount(arg));
+
     default:
       throw new Error(`Unknown transform: ${name}`);
   }
@@ -297,9 +306,9 @@ async function getProjectInfo(targetFolderUri, workspaceFolder) {
   let rootNamespace;
 
   if (projectRoot.csprojName) {
-    rootNamespace = sanitizeIdentifier(projectRoot.csprojName);
+    rootNamespace = sanitizeNamespace(projectRoot.csprojName);
   } else {
-    rootNamespace = sanitizeIdentifier(workspaceFolder.name);
+    rootNamespace = sanitizeNamespace(workspaceFolder.name);
   }
 
   return {
@@ -356,7 +365,7 @@ function buildTargetContext(targetFolderUri, projectInfo) {
     : [];
 
   const targetNamespace = [projectInfo.rootNamespace, ...parts].join(".");
-  const moduleNamespace = removeLastNamespacePart(targetNamespace);
+  const moduleNamespace = removeLastNamespaceParts(targetNamespace, 1);
 
   return {
     path: targetFolderUri.fsPath,
@@ -387,7 +396,7 @@ function buildFileContext(fileUri, projectInfo) {
     : fileName;
 
   const fileNamespace = [projectInfo.rootNamespace, ...directoryParts].join(".");
-  const moduleNamespace = removeLastNamespacePart(fileNamespace);
+  const moduleNamespace = removeLastNamespaceParts(fileNamespace, 1);
 
   return {
     path: fileUri.fsPath,
@@ -402,17 +411,61 @@ function buildFileContext(fileUri, projectInfo) {
   };
 }
 
-function removeLastNamespacePart(namespaceValue) {
+function removeLastNamespaceParts(namespaceValue, count = 1) {
   const parts = String(namespaceValue)
     .split(".")
     .map(x => x.trim())
     .filter(Boolean);
 
-  if (parts.length <= 1) {
-    return String(namespaceValue);
+  const removeCount = parseNamespaceUpCount(count);
+
+  if (parts.length <= removeCount) {
+    return parts.length > 0 ? parts[0] : String(namespaceValue);
   }
 
-  return parts.slice(0, -1).join(".");
+  return parts.slice(0, parts.length - removeCount).join(".");
+}
+
+function parseNamespaceUpCount(value) {
+  const count = Number.parseInt(String(value || "1"), 10);
+
+  if (Number.isNaN(count) || count < 0) {
+    throw new Error(`Invalid namespaceUp count: ${value}`);
+  }
+
+  return count;
+}
+
+function sanitizeNamespace(value) {
+  return String(value)
+    .split(".")
+    .map(part => sanitizeNamespacePart(part))
+    .filter(Boolean)
+    .join(".");
+}
+
+function sanitizeNamespacePart(value) {
+  const text = String(value).trim();
+
+  if (!text) {
+    return "";
+  }
+ 
+  if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(text)) {
+    return text;
+  }
+ 
+  let cleaned = toPascalCase(text.replace(/[^A-Za-z0-9_]+/g, " "));
+
+  if (!cleaned) {
+    return "";
+  }
+ 
+  if (/^[0-9]/.test(cleaned)) {
+    cleaned = `_${cleaned}`;
+  }
+
+  return cleaned;
 }
 
 module.exports = {

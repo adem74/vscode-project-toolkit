@@ -6,14 +6,18 @@ const {
 const { registerCreateFoldersFeature } = require("./features/create-folders");
 const { registerCreateFileFromTemplateFeature } = require("./features/create-file-from-template");
 const { registerFocusFolderFeature } = require("./features/focus-folder");
+const { registerProjectToolkitPanelFeature } = require("./features/panel/project-toolkit-panel");
+const { autoRunPanelSections } = require("./features/panel/panel-sections");
 
-function activate(context) {
+async function activate(context) {
   registerSetupExtensionFeature(context);
   registerCreateFoldersFeature(context);
   registerCreateFileFromTemplateFeature(context);
   registerFocusFolderFeature(context);
+  registerProjectToolkitPanelFeature(context);
 
-  autoSetupProjectToolkit(context);
+  await autoSetupProjectToolkit(context);
+  await autoRunPanelSections(context);
 }
 
 function deactivate() {}

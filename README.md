@@ -986,6 +986,36 @@ This removes Project Toolkit focus rules and restores normal visibility.
 
 ---
 
+# Workspace Color
+
+Workspace Color lets you apply a simple workspace-specific color to VS Code UI areas such as the Activity Bar, Title Bar, and Status Bar.
+
+This is useful when working with multiple projects at the same time, because each workspace can have its own visual identity.
+
+---
+
+## How to Use
+
+1. Click the **Project Toolkit** icon in the Activity Bar.
+2. Open the **Workspace Color** section.
+3. Turn the feature on using the toggle switch.
+4. Select a color.
+5. Click **Apply Color**.
+
+Project Toolkit applies the selected color to the current workspace.
+
+--- 
+
+## Automatic Apply
+
+If Workspace Color is enabled, Project Toolkit automatically reapplies the saved color when the workspace is opened.
+
+So after reopening VS Code, you do not need to manually toggle the feature again.
+
+--- 
+
+
+
 # Recommended Use Cases
 
 Project Toolkit is useful for:

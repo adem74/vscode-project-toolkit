@@ -10,25 +10,38 @@ const {
 function registerSetupExtensionFeature(context) {
   const setupCommand = vscode.commands.registerCommand(
     "projectToolkit.setupExtension",
-    async (uri) => {
+    async (arg) => {
       try {
+        const options = isPlainObject(arg) ? arg : {};
+        const uri = isVsCodeUri(arg) ? arg : undefined;
+
         const workspaceFolder = resolveWorkspaceFolder(uri);
 
         if (!workspaceFolder) {
-          vscode.window.showErrorMessage("Please open a workspace first.");
+          if (!options.silent) {
+            vscode.window.showErrorMessage("Please open a workspace first.");
+          }
+
           return;
         }
 
         const result = await setupProjectToolkit(workspaceFolder);
 
-        vscode.window.showInformationMessage(
-          result.createdCount > 0
-            ? `Project Toolkit setup completed. Created ${result.createdCount} item(s).`
-            : "Project Toolkit is already set up."
-        );
+        if (!options.silent) {
+          vscode.window.showInformationMessage(
+            result.createdCount > 0
+              ? `Project Toolkit setup completed. Created ${result.createdCount} item(s).`
+              : "Project Toolkit is already set up."
+          );
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        vscode.window.showErrorMessage(`Project Toolkit setup failed: ${message}`);
+
+        if (!isPlainObject(arg) || !arg.silent) {
+          vscode.window.showErrorMessage(`Project Toolkit setup failed: ${message}`);
+        }
+
+        throw error;
       }
     }
   );
@@ -142,6 +155,7 @@ async function setupProjectToolkit(workspaceFolder) {
   createdCount += await ensureDirectoryCreated(uris.folderTemplates);
   createdCount += await ensureDirectoryCreated(uris.fileTemplates);
   createdCount += await ensureDirectoryCreated(uris.sampleTemplate);
+  createdCount += await ensureDirectoryCreated(uris.workspaceColors);
 
   createdCount += await writeTextIfMissing(
     uris.folderTemplatesSettings,
@@ -185,6 +199,11 @@ function getProjectToolkitUris(workspaceFolder) {
     "sample-csharp-class"
   );
 
+  const workspaceColors = joinPath(
+    root,
+    "Workspace Colors"
+  );
+
   return {
     root,
 
@@ -195,7 +214,9 @@ function getProjectToolkitUris(workspaceFolder) {
 
     sampleTemplate,
     sampleTemplateManifest: joinPath(sampleTemplate, "template.json"),
-    sampleTemplateSource: joinPath(sampleTemplate, "Class.cs.tpl")
+    sampleTemplateSource: joinPath(sampleTemplate, "Class.cs.tpl"),
+
+    workspaceColors
   };
 }
 
@@ -303,6 +324,19 @@ public sealed class {{class}}
 {
 }
 `;
+}
+
+function isVsCodeUri(value) {
+  return value && typeof value === "object" && typeof value.fsPath === "string";
+}
+
+function isPlainObject(value) {
+  return (
+    value &&
+    typeof value === "object" &&
+    !isVsCodeUri(value) &&
+    !Array.isArray(value)
+  );
 }
 
 module.exports = {

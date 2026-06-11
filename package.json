@@ -1,8 +1,8 @@
 {
   "name": "project-toolkit",
   "displayName": "Project Toolkit",
-  "description": "A workspace toolkit for folder scaffolding, file templates, and focused project navigation.",
-  "version": "1.0.1",
+  "description": "A workspace toolkit for folder scaffolding, file templates, focused project navigation and more",
+  "version": "1.1.0",
   "publisher": "AdemUnal",
   "engines": {
     "vscode": "^1.90.0"
@@ -24,7 +24,8 @@
     "Flutter"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:projectToolkit.panelView"
   ],
   "main": "./extension.js",
   "icon": "assets/icon.png",
@@ -85,6 +86,24 @@
         "icon": "$(debug-restart)"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "projectToolkit",
+          "title": "Project Toolkit",
+          "icon": "assets/activity-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "projectToolkit": [
+        {
+          "type": "webview",
+          "id": "projectToolkit.panelView",
+          "name": "Toolkit"
+        }
+      ]
+    },
     "submenus": [
       {
         "id": "projectToolkit.menu",
